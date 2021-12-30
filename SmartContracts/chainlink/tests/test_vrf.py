@@ -1,6 +1,6 @@
 import time
 import pytest
-from brownie import VRFConsumer, convert, network
+from brownie import WinnerPicker, convert, network
 from scripts.helpful_scripts import (
     get_account,
     get_contract,
@@ -10,7 +10,7 @@ from scripts.helpful_scripts import (
 
 def test_can_request_random_number(get_keyhash, chainlink_fee):
     # Arrange
-    vrf_consumer = VRFConsumer.deploy(
+    vrf_consumer = WinnerPicker.deploy(
         get_keyhash,
         get_contract("vrf_coordinator").address,
         get_contract("link_token").address,
@@ -29,7 +29,7 @@ def test_returns_random_number_local(get_keyhash, chainlink_fee):
     # Arrange
     if network.show_active() not in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
         pytest.skip("Only for local testing")
-    vrf_consumer = VRFConsumer.deploy(
+    vrf_consumer = WinnerPicker.deploy(
         get_keyhash,
         get_contract("vrf_coordinator").address,
         get_contract("link_token").address,
@@ -59,7 +59,7 @@ def test_returns_random_number_testnet(
     # Arrange
     if network.show_active() not in ["kovan", "rinkeby", "ropsten"]:
         pytest.skip("Only for testnet testing")
-    vrf_consumer = VRFConsumer.deploy(
+    vrf_consumer = WinnerPicker.deploy(
         get_keyhash,
         get_contract("vrf_coordinator").address,
         get_contract("link_token").address,

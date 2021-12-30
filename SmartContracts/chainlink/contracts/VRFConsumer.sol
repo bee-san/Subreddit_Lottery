@@ -3,12 +3,32 @@ pragma solidity ^0.8.0;
 
 import "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
 
-contract VRFConsumer is VRFConsumerBase {
+contract WinnerPicker is VRFConsumerBase {
     
     bytes32 internal keyHash;
     uint256 internal fee;
     
     uint256 public randomResult;
+
+    // Lottery picker
+    function pickWinners(uint256 numberOfWinners, string[] memory contestants) external returns (string[] memory winners){
+        getRandomNumber();
+        // TODO make expand only return unique numbers
+        uint256[] memory randomNumberArray = expand(randomResult, numberOfWinners);
+        string[] memory winnersArray = new string[](numberOfWinners);
+
+
+        for (uint256 i = 0; i <= numberOfWinners; i ++){
+            winnersArray[i] = contestants[randomNumberArray[i]];
+        }
+        return winnersArray;
+        
+        /*
+            1. get array of random numbers size numberOfWinners mod constestants.length
+            2. get winners into array
+            3. return ths array
+        */
+    }
     
     /**
      * Constructor inherits VRFConsumerBase
@@ -32,7 +52,7 @@ contract VRFConsumer is VRFConsumerBase {
     /** 
      * Requests randomness
      */
-    function getRandomNumber() public returns (bytes32 requestId) {
+    function getRandomNumber() internal returns (bytes32 requestId) {
         require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK - fill contract with faucet");
         return requestRandomness(keyHash, fee);
     }
@@ -42,5 +62,13 @@ contract VRFConsumer is VRFConsumerBase {
      */
     function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
         randomResult = randomness;
+    }
+
+    function expand(uint256 randomValue, uint256 n) public pure returns (uint256[] memory expandedValues) {
+        expandedValues = new uint256[](n);
+        for (uint256 i = 0; i < n; i++) {
+            expandedValues[i] = uint256(keccak256(abi.encode(randomValue, i)));
+        }
+        return expandedValues;
     }
 }
