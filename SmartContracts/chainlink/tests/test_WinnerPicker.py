@@ -1,6 +1,6 @@
 import time
 import pytest
-from brownie import WinnerPicker, convert, network
+from brownie import WinnerPicker, convert, network, exceptions
 from scripts.helpful_scripts import (
     get_account,
     get_contract,
@@ -77,3 +77,49 @@ def test_returns_random_number_testnet(
     # Assert
     assert vrf_consumer.randomResult() > 0
     assert isinstance(vrf_consumer.randomResult(), int)
+
+def test_pickWinners_works(get_keyhash, chainlink_fee):
+    # Arrange
+    if network.show_active() not in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
+        pytest.skip("Only for local testing")
+    vrf_consumer = WinnerPicker.deploy(
+        get_keyhash,
+        get_contract("vrf_coordinator").address,
+        get_contract("link_token").address,
+        chainlink_fee,
+        {"from": get_account()},
+    )
+    get_contract("link_token").transfer(
+        vrf_consumer.address, chainlink_fee * 3, {"from": get_account()}
+    )
+    # Act
+    print("getting transaction")
+    transaction_receipt = vrf_consumer.pickWinners(1, ["dylan"])
+    print("printing transaction receipt")
+    print(transaction_receipt.return_value)
+    assert (len(transaction_receipt.return_value) > 0)
+    print(list(transaction_receipt.return_value))
+    assert isinstance(list(transaction_receipt.return_value), list)
+    assert (transaction_receipt.return_value[0] == "dylan")
+
+def test_pickWinners_no_winner(get_keyhash, chainlink_fee):
+    # Arrange
+    if network.show_active() not in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
+        pytest.skip("Only for local testing")
+    vrf_consumer = WinnerPicker.deploy(
+        get_keyhash,
+        get_contract("vrf_coordinator").address,
+        get_contract("link_token").address,
+        chainlink_fee,
+        {"from": get_account()},
+    )
+    get_contract("link_token").transfer(
+        vrf_consumer.address, chainlink_fee * 3, {"from": get_account()}
+    )
+    # Act
+    print("getting transaction")
+    try:
+        vrf_consumer.pickWinners(0, ["dylan"])
+    except exceptions.VirtualMachineError as e:
+        print(e)
+        assert True

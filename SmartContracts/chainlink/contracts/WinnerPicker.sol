@@ -4,67 +4,85 @@ pragma solidity ^0.8.0;
 import "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
 
 contract WinnerPicker is VRFConsumerBase {
-    
     bytes32 internal keyHash;
     uint256 internal fee;
-    
+
     uint256 public randomResult;
 
     // Lottery picker
-    function pickWinners(uint256 numberOfWinners, string[] memory contestants) external returns (string[] memory winners){
+    function pickWinners(uint256 numberOfWinners, string[] memory contestants)
+        external
+        returns (string[] memory winners)
+    {
+        require(numberOfWinners > 0);
+        require(numberOfWinners <= contestants.length);
         getRandomNumber();
         // TODO make expand only return unique numbers
-        uint256[] memory randomNumberArray = expand(randomResult, numberOfWinners);
+        uint256[] memory randomNumberArray = expand(
+            randomResult,
+            numberOfWinners
+        );
+        require(randomNumberArray.length == numberOfWinners);
         string[] memory winnersArray = new string[](numberOfWinners);
+        require(winnersArray.length == numberOfWinners);
 
-
-        for (uint256 i = 0; i <= numberOfWinners; i ++){
-            winnersArray[i] = contestants[randomNumberArray[i]];
+        for (uint256 y = 0; y < numberOfWinners; y++) {
+            uint256 index = randomNumberArray[y] % numberOfWinners;
+            winnersArray[y] = contestants[index];
         }
         return winnersArray;
-        
-        /*
-            1. get array of random numbers size numberOfWinners mod constestants.length
-            2. get winners into array
-            3. return ths array
-        */
     }
-    
+
     /**
      * Constructor inherits VRFConsumerBase
-     * 
+     *
      * Network: Kovan
      * Chainlink VRF Coordinator address: 0xdD3782915140c8f3b190B5D67eAc6dc5760C46E9
      * LINK token address:                0xa36085F69e2889c224210F603D836748e7dC0088
      * Key Hash: 0x6c3699283bda56ad74f6b855546325b68d482e983852a7a82979cc4807b641f4
      */
-    constructor(bytes32 _keyhash, address _vrfCoordinator, address _linkToken, uint256 _fee) 
+    constructor(
+        bytes32 _keyhash,
+        address _vrfCoordinator,
+        address _linkToken,
+        uint256 _fee
+    )
         VRFConsumerBase(
             _vrfCoordinator, // VRF Coordinator
-            _linkToken  // LINK Token
-        ) 
+            _linkToken // LINK Token
+        )
     {
         keyHash = _keyhash;
         // fee = 0.1 * 10 ** 18; // 0.1 LINK
         fee = _fee;
     }
-    
-    /** 
+
+    /**
      * Requests randomness
      */
-    function getRandomNumber() internal returns (bytes32 requestId) {
-        require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK - fill contract with faucet");
+    function getRandomNumber() public returns (bytes32 requestId) {
+        require(
+            LINK.balanceOf(address(this)) >= fee,
+            "Not enough LINK - fill contract with faucet"
+        );
         return requestRandomness(keyHash, fee);
     }
 
     /**
      * Callback function used by VRF Coordinator
      */
-    function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
+    function fulfillRandomness(bytes32 requestId, uint256 randomness)
+        internal
+        override
+    {
         randomResult = randomness;
     }
 
-    function expand(uint256 randomValue, uint256 n) public pure returns (uint256[] memory expandedValues) {
+    function expand(uint256 randomValue, uint256 n)
+        public
+        pure
+        returns (uint256[] memory expandedValues)
+    {
         expandedValues = new uint256[](n);
         for (uint256 i = 0; i < n; i++) {
             expandedValues[i] = uint256(keccak256(abi.encode(randomValue, i)));
