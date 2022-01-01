@@ -56,7 +56,7 @@ networks:
     fee: 100000000000000000
     oracle: '0xcc80934eaf22b2c8dbf7a69e8e0d356a7cac5754'
     jobId: '5ca4fa9b2d64462290abfbda84e38cf4'
-  mumbai:
+  polygon-test:
     eth_usd_price_feed: '0x0715A7794a1dc8e42615F059dD6e406A6594651A'
     link_token: '0x326C977E6efc84E512bB9C30f76E30c160eD06FB'
     vrf_coordinator: '0x8C7382F9D8f56b33781fE506E897a4F1e2d17255'

@@ -7,6 +7,7 @@ from scripts.helpful_scripts import (
 
 
 def depoly_WinnerPicker():
+    print("Deploying....")
     account = get_account()
     print(f"On network {network.show_active()}")
     keyhash = config["networks"][network.show_active()]["keyhash"]

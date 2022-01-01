@@ -4,6 +4,9 @@ pragma solidity ^0.8.0;
 import "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+// ************ TODO emit winner 
+// https://www.tutorialspoint.com/solidity/solidity_events.htm
+
 interface IERC20 {
     function transfer(address _to, uint256 _amount) external returns (bool);
 }
