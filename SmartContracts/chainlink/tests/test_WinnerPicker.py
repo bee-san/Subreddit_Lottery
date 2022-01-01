@@ -7,7 +7,7 @@ from scripts.helpful_scripts import (
     LOCAL_BLOCKCHAIN_ENVIRONMENTS,
 )
 
-
+@pytest.mark.skip("Random number is internal")
 def test_can_request_random_number(get_keyhash, chainlink_fee):
     # Arrange
     vrf_consumer = WinnerPicker.deploy(
@@ -24,7 +24,7 @@ def test_can_request_random_number(get_keyhash, chainlink_fee):
     requestId = vrf_consumer.getRandomNumber.call({"from": get_account()})
     assert isinstance(requestId, convert.datatypes.HexString)
 
-
+@pytest.mark.skip("Random number is internal")
 def test_returns_random_number_local(get_keyhash, chainlink_fee):
     # Arrange
     if network.show_active() not in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
@@ -123,3 +123,23 @@ def test_pickWinners_no_winner(get_keyhash, chainlink_fee):
     except exceptions.VirtualMachineError as e:
         print(e)
         assert True
+
+def test_pickWinners_lottery_works_3_winners(get_keyhash, chainlink_fee):
+    # Arrange
+    if network.show_active() not in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
+        pytest.skip("Only for local testing")
+    vrf_consumer = WinnerPicker.deploy(
+        get_keyhash,
+        get_contract("vrf_coordinator").address,
+        get_contract("link_token").address,
+        chainlink_fee,
+        {"from": get_account()},
+    )
+    get_contract("link_token").transfer(
+        vrf_consumer.address, chainlink_fee * 3, {"from": get_account()}
+    )
+    # Act
+    print("getting transaction")
+    contestants = ["dylan", "fred", "joe"]
+    transaction_receipt = vrf_consumer.pickWinners(3, contestants)
+    assert set(list(transaction_receipt.return_value)) == set(contestants)

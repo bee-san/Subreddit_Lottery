@@ -2,10 +2,16 @@
 pragma solidity ^0.8.0;
 
 import "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract WinnerPicker is VRFConsumerBase {
+interface IERC20 {
+    function transfer(address _to, uint256 _amount) external returns (bool);
+}
+
+contract WinnerPicker is VRFConsumerBase, Ownable {
     bytes32 internal keyHash;
     uint256 internal fee;
+    string[] public winnersPublic;
 
     uint256 public randomResult;
 
@@ -30,7 +36,16 @@ contract WinnerPicker is VRFConsumerBase {
             uint256 index = randomNumberArray[y] % numberOfWinners;
             winnersArray[y] = contestants[index];
         }
+        winners = winnersArray;
         return winnersArray;
+    }
+
+    function withdrawToken(address _tokenContract, uint256 _amount) external onlyOwner{
+        IERC20 tokenContract = IERC20(_tokenContract);
+        
+        // transfer the token from address of this contract
+        // to address of the user (executing the withdrawToken() function)
+        tokenContract.transfer(msg.sender, _amount);
     }
 
     /**
@@ -60,7 +75,7 @@ contract WinnerPicker is VRFConsumerBase {
     /**
      * Requests randomness
      */
-    function getRandomNumber() public returns (bytes32 requestId) {
+    function getRandomNumber() internal returns (bytes32 requestId) {
         require(
             LINK.balanceOf(address(this)) >= fee,
             "Not enough LINK - fill contract with faucet"
@@ -79,7 +94,7 @@ contract WinnerPicker is VRFConsumerBase {
     }
 
     function expand(uint256 randomValue, uint256 n)
-        public
+        internal
         pure
         returns (uint256[] memory expandedValues)
     {
