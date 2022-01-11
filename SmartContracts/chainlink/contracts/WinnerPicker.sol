@@ -4,13 +4,6 @@ pragma solidity ^0.8.0;
 import "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-// ************ TODO emit winner 
-// https://www.tutorialspoint.com/solidity/solidity_events.htm
-
-interface IERC20 {
-    function transfer(address _to, uint256 _amount) external returns (bool);
-}
-
 contract WinnerPicker is VRFConsumerBase, Ownable {
     bytes32 internal keyHash;
     uint256 internal fee;
@@ -41,14 +34,6 @@ contract WinnerPicker is VRFConsumerBase, Ownable {
         }
         winners = winnersArray;
         return winnersArray;
-    }
-
-    function withdrawToken(address _tokenContract, uint256 _amount) external onlyOwner{
-        IERC20 tokenContract = IERC20(_tokenContract);
-        
-        // transfer the token from address of this contract
-        // to address of the user (executing the withdrawToken() function)
-        tokenContract.transfer(msg.sender, _amount);
     }
 
     /**
